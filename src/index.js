@@ -1,26 +1,26 @@
 const express = require("express");
-const {getUsers:users, getUserById,createUser} = require('./helpers/userHelper')
-const path = require('node:path');
+const { getUsers, getUserById, createUser, deleteUser, updateUser } = require('./helpers/userHelper');
 const app = express();
 
 app.use(express.json());
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({ extended: true }));
 
-app.get('/users', (req, res) => {
+
+app.get('/users', async (req, res) => {
     try {
+        const users = await getUsers();
         res.send(users);
     } catch (e) {
         res.status(500).send(e.message);
     }
 });
 
+
 app.post('/users', async (req, res) => {
     try {
         const {name, email, password} = req.body;
         //TODO validate data
-        const id = users[users.length - 1].id + 1;
-        const newUser = {id, name, email, password};
-        await createUser(newUser)
+        const newUser = await createUser({name, email, password});
         res.status(201).send(newUser);
     } catch (e) {
         res.status(500).send(e.message);
@@ -40,34 +40,40 @@ app.get('/users/:userId', async (req, res) => {
     }
 });
 
-app.put('/users/:userId', (req, res) => {
+
+
+
+
+app.put('/users/:userId', async (req, res) => {
     try {
         const userId = Number(req.params.userId);
-        const userIndex = users.findIndex(user => user.id === userId);
-        if (userIndex === -1) {
-            return res.status(404).send('User not found');
+        const result = await updateUser(userId, req.body);
+
+        if (result.error) {
+            return res.status(404).send(result.error);
         }
-        const {name, email, password} = req.body;
+        return res.status(201).send(result.message);
         //TODO validate data
-        // users[userIndex] = {...users[userIndex], name, email, password};
-        users[userIndex].name = name;
-        users[userIndex].email = email;
-        users[userIndex].password = password;
-        res.status(201).send(users[userIndex]);
+
     } catch (e) {
         res.status(500).send(e.message);
     }
 });
 
-app.delete('/users/:userId', (req, res) => {
+
+
+
+
+app.delete('/users/:userId', async (req, res) => {
     try {
+        //TODO validate data
         const userId = Number(req.params.userId);
-        const userIndex = users.findIndex(user => user.id === userId);
-        if (userIndex === -1) {
-            return res.status(404).send('User not found');
+        const result = await deleteUser(userId);
+
+        if (result.error) {
+            return res.status(404).send(result.error);
         }
-        users.splice(userIndex, 1);
-        res.sendStatus(204);
+        return res.status(200).send(result.message);
     } catch (e) {
         res.status(500).send(e.message);
     }
