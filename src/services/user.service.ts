@@ -5,7 +5,7 @@ import { IUser } from "../interfaces/user.interface";
 
 const usersFilePath = path.join(process.cwd(), "src/db", "users.json");
 
-export const getUsers = async (): Promise<IUser[]> => {
+export const get = async (): Promise<IUser[]> => {
   try {
     const data = await fs.readFile(usersFilePath, "utf-8");
     return JSON.parse(data);
@@ -14,7 +14,7 @@ export const getUsers = async (): Promise<IUser[]> => {
   }
 };
 
-export const getUserById = async (userId: number): Promise<IUser> => {
+export const getById = async (userId: number): Promise<IUser> => {
   try {
     const data = await fs.readFile(usersFilePath, "utf-8");
     const users = JSON.parse(data);
@@ -24,7 +24,7 @@ export const getUserById = async (userId: number): Promise<IUser> => {
   }
 };
 
-export const createUser = async (newUser: IUser): Promise<IUser> => {
+export const create = async (newUser: IUser): Promise<IUser> => {
   try {
     const data = await fs.readFile(usersFilePath, "utf-8");
     const users = JSON.parse(data);
@@ -37,7 +37,7 @@ export const createUser = async (newUser: IUser): Promise<IUser> => {
   }
 };
 
-export const updateUser = async (userId, newUserData) => {
+export const update = async (userId, newUserData) => {
   try {
     const data = await fs.readFile(usersFilePath, "utf-8");
     const users = JSON.parse(data);
@@ -58,7 +58,7 @@ export const updateUser = async (userId, newUserData) => {
   }
 };
 
-export const deleteUser = async (userId: number) => {
+export const remove = async (userId: number) => {
   try {
     const data = await fs.readFile(usersFilePath, "utf-8");
     const users = JSON.parse(data);
@@ -75,9 +75,9 @@ export const deleteUser = async (userId: number) => {
 };
 
 exports = {
-  getUsers,
-  getUserById,
-  createUser,
-  updateUser,
-  deleteUser,
+  get,
+  getById,
+  create,
+  update,
+  remove,
 };

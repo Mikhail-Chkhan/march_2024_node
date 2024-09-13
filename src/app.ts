@@ -1,80 +1,98 @@
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 
+import { ApiError } from "./errors/api.error";
 import { IUser } from "./interfaces/user.interface";
-import {
-  createUser,
-  deleteUser,
-  getUserById,
-  getUsers,
-  updateUser,
-} from "./services/user.service";
+import { create, get, getById, remove, update } from "./services/user.service";
 
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/users", async (req: Request, res: Response) => {
+app.get("/users", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const users = await getUsers();
+    const users = await get();
     res.send(users);
   } catch (e) {
-    res.status(500).send(e.message);
+    next(e);
   }
 });
 
-app.post("/users", async (req: Request, res: Response) => {
+app.post("/users", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { name, email, password }: IUser = req.body;
     //TODO validate data
-    const newUser = await createUser({ name, email, password });
+    const newUser = await create({ name, email, password });
     res.status(201).send(newUser);
   } catch (e) {
-    res.status(500).send(e.message);
+    next(e);
   }
 });
 
-app.get("/users/:userId", async (req: Request, res) => {
-  try {
-    const userId = Number(req.params.userId);
-    const user = await getUserById(userId);
-    if (!user) {
-      return res.status(404).send("User not found");
+app.get(
+  "/users/:userId",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = Number(req.params.userId);
+      const user = await getById(userId);
+      if (!user) {
+        throw new ApiError("User not found", 404);
+        // return res.status(404).send("User not found");
+      }
+      res.send(user);
+    } catch (e) {
+      next(e);
     }
-    res.send(user);
-  } catch (e) {
-    res.status(500).send(e.message);
-  }
-});
+  },
+);
 
-app.put("/users/:userId", async (req: Request, res: Response) => {
-  try {
-    const userId = Number(req.params.userId);
-    const result = await updateUser(userId, req.body);
+app.put(
+  "/users/:userId",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = Number(req.params.userId);
+      const result = await update(userId, req.body);
 
-    if (result.error) {
-      return res.status(404).send(result.error);
+      if (result.error) {
+        throw new ApiError(result.error, 404);
+        // return res.status(404).send(result.error);
+      }
+      return res.status(201).send(result.message);
+      //TODO validate data
+    } catch (e) {
+      next(e);
     }
-    return res.status(201).send(result.message);
-    //TODO validate data
-  } catch (e) {
-    res.status(500).send(e.message);
-  }
-});
+  },
+);
 
-app.delete("/users/:userId", async (req: Request, res: Response) => {
-  try {
-    //TODO validate data
-    const userId = Number(req.params.userId);
-    const result = await deleteUser(userId);
+app.delete(
+  "/users/:userId",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      //TODO validate data
+      const userId = Number(req.params.userId);
+      const result = await remove(userId);
 
-    if (result.error) {
-      return res.status(404).send(result.error);
+      if (result.error) {
+        throw new ApiError(result.error, 404);
+        // return res.status(404).send(result.error);
+      }
+      return res.status(200).send(result.message);
+    } catch (e) {
+      next(e);
     }
-    return res.status(200).send(result.message);
-  } catch (e) {
-    res.status(500).send(e.message);
-  }
+  },
+);
+
+app.use(
+  "*",
+  (error: ApiError, req: Request, res: Response, next: NextFunction) => {
+    res.status(error.status || 500).send(error.message);
+  },
+);
+process.on("uncaughtException", (error) => {
+  console.error("uncaughtException", error.message, error.stack);
+  process.exit(1);
 });
 
 app.listen(3000, () => {
