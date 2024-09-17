@@ -1,83 +1,67 @@
-import fs from "node:fs/promises";
-import path from "node:path";
-
+import { ApiError } from "../errors/api.error";
 import { IUser } from "../interfaces/user.interface";
+import { userRepository } from "../repositories/user.repository";
 
-const usersFilePath = path.join(process.cwd(), "src/db", "users.json");
-
-export const get = async (): Promise<IUser[]> => {
-  try {
-    const data = await fs.readFile(usersFilePath, "utf-8");
-    return JSON.parse(data);
-  } catch (error) {
-    throw error;
+class UserService {
+  public async get(): Promise<IUser[]> {
+    return await userRepository.getList();
   }
-};
-
-export const getById = async (userId: number): Promise<IUser> => {
-  try {
-    const data = await fs.readFile(usersFilePath, "utf-8");
-    const users = JSON.parse(data);
-    return users.find((user) => user.id === userId);
-  } catch (error) {
-    throw error;
+  public async getUser(userId: number): Promise<IUser> {
+    return await userRepository.getById(userId);
   }
-};
 
-export const create = async (newUser: IUser): Promise<IUser> => {
-  try {
-    const data = await fs.readFile(usersFilePath, "utf-8");
-    const users = JSON.parse(data);
-    newUser.id = users[users.length - 1].id + 1;
-    users.push(newUser);
-    await fs.writeFile(usersFilePath, JSON.stringify(users, null, 2), "utf-8");
-    return newUser;
-  } catch (error) {
-    throw error;
-  }
-};
-
-export const update = async (userId, newUserData) => {
-  try {
-    const data = await fs.readFile(usersFilePath, "utf-8");
-    const users = JSON.parse(data);
-    if (!users[userId]) {
+  public async create(userData: IUser): Promise<IUser> {
+    const errors = [
+      { condition: !userData.password, message: "Password is required" },
+      { condition: !userData.name, message: "Name is required" },
+      { condition: !userData.email, message: "Email is required" },
       {
-        return { error: "User not found" };
+        condition:
+          userData.password.length < 8 || userData.password.length > 15,
+        message: "Password length must be between 8 and 15 characters",
+      },
+      {
+        condition: !/\d/.test(userData.password),
+        message: "Password must contain at least one number",
+      },
+    ];
+    for (const { condition, message } of errors) {
+      if (condition) {
+        throw new ApiError(`User data is invalid: ${message}`, 400);
       }
     }
-    const userIndex = users.findIndex((user) => user.id === userId);
-    users[userIndex].name = newUserData.name;
-    users[userIndex].email = newUserData.email;
-    users[userIndex].password = newUserData.password;
-
-    await fs.writeFile(usersFilePath, JSON.stringify(users, null, 2), "utf-8");
-    return { message: `User with id ${userId} updated successfully` };
-  } catch (error) {
-    throw error;
+    return await userRepository.create(userData);
   }
-};
 
-export const remove = async (userId: number) => {
-  try {
-    const data = await fs.readFile(usersFilePath, "utf-8");
-    const users = JSON.parse(data);
-    const userIndex = users.findIndex((user) => user.id === userId);
-    if (userIndex === -1) {
-      return { error: "User not found" };
+  public async update(
+    userId: number,
+    updateData: IUser,
+  ): Promise<{ message: string }> {
+    const errors = [
+      { condition: !updateData.password, message: "Password is required" },
+      { condition: !updateData.name, message: "Name is required" },
+      { condition: !updateData.email, message: "Email is required" },
+      {
+        condition:
+          updateData.password.length < 8 || updateData.password.length > 15,
+        message: "Password length must be between 8 and 15 characters",
+      },
+      {
+        condition: !/\d/.test(updateData.password),
+        message: "Password must contain at least one number",
+      },
+    ];
+
+    for (const { condition, message } of errors) {
+      if (condition) {
+        throw new ApiError(`User data is invalid: ${message}`, 400);
+      }
     }
-    users.splice(userIndex, 1);
-    await fs.writeFile(usersFilePath, JSON.stringify(users, null, 2), "utf-8");
-    return { message: `User with id ${userId} removed successfully` };
-  } catch (error) {
-    throw error;
+    return await userRepository.update(userId, updateData);
   }
-};
 
-exports = {
-  get,
-  getById,
-  create,
-  update,
-  remove,
-};
+  public async remove(userId: number): Promise<{ message: string }> {
+    return await userRepository.remove(userId);
+  }
+}
+export const userService = new UserService();
