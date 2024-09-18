@@ -1,24 +1,26 @@
 import { IUser } from "../interfaces/user.interface";
-import { create, get, getById, remove, update } from "../services/fs.service";
+import { User } from "../models/user.model";
 
 class UserRepository {
   public async getList(): Promise<IUser[]> {
-    return await get();
+    return await User.find({});
   }
-  public async getById(userId: number): Promise<IUser> {
-    return await getById(userId);
+  public async getById(userId: string): Promise<IUser | null> {
+    return await User.findById(userId);
   }
   public async create(user: IUser): Promise<IUser> {
-    return await create(user);
+    return await User.create(user);
   }
   public async update(
-    userId: number,
+    userId: string,
     dataUser: IUser,
   ): Promise<{ message: string }> {
-    return await update(userId, dataUser);
+    await User.findByIdAndUpdate(userId, dataUser, { new: false });
+    return { message: `User with id ${userId} updated successfully` };
   }
-  public async remove(userId: number): Promise<{ message: string }> {
-    return await remove(userId);
+  public async remove(userId: string): Promise<{ message: string }> {
+    await User.deleteOne({ _id: userId });
+    return { message: `User with id ${userId} removed successfully` };
   }
 }
 

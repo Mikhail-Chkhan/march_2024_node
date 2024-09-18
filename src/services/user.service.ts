@@ -6,7 +6,7 @@ class UserService {
   public async get(): Promise<IUser[]> {
     return await userRepository.getList();
   }
-  public async getUser(userId: number): Promise<IUser> {
+  public async getUser(userId: string): Promise<IUser> {
     return await userRepository.getById(userId);
   }
 
@@ -34,7 +34,7 @@ class UserService {
   }
 
   public async update(
-    userId: number,
+    userId: string,
     updateData: IUser,
   ): Promise<{ message: string }> {
     const errors = [
@@ -60,7 +60,7 @@ class UserService {
     return await userRepository.update(userId, updateData);
   }
 
-  public async remove(userId: number): Promise<{ message: string }> {
+  public async remove(userId: string): Promise<{ message: string }> {
     return await userRepository.remove(userId);
   }
 }

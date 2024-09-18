@@ -15,7 +15,7 @@ class UserController {
 
   public async getById(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId = Number(req.params.userId);
+      const userId = req.params.userId;
       const user = await userService.getUser(userId);
       res.json(user);
     } catch (e) {
@@ -35,8 +35,8 @@ class UserController {
 
   public async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId = Number(req.params.userId);
-      const result = await userService.update(userId, req.body);
+      const userId = req.params.userId;
+      const result = await userService.update(userId.toString(), req.body);
       return res.status(201).json(result.message);
     } catch (e) {
       next(e);
@@ -45,8 +45,8 @@ class UserController {
 
   public async remove(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId = Number(req.params.userId);
-      const result = await userService.remove(userId);
+      const userId = req.params.userId;
+      const result = await userService.remove(userId.toString());
       return res.status(200).json(result.message);
     } catch (e) {
       next(e);
