@@ -13,7 +13,12 @@ router.post(
   userController.create,
 );
 router.get("/:userId", userMiddleware.checkId, userController.getById);
-router.put("/:userId", userMiddleware.checkId, userController.update);
+router.put(
+  "/:userId",
+  userMiddleware.isBodyValid(UserValidator.create),
+  userMiddleware.checkId,
+  userController.update,
+);
 router.delete("/:userId", userMiddleware.checkId, userController.remove);
 
 export const userRouter = router;
