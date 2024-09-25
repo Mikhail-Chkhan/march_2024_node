@@ -10,29 +10,6 @@ class UserService {
     return await userRepository.getById(userId);
   }
 
-  public async create(userData: IUser): Promise<IUser> {
-    const errors = [
-      { condition: !userData.password, message: "Password is required" },
-      { condition: !userData.name, message: "Name is required" },
-      { condition: !userData.email, message: "Email is required" },
-      {
-        condition:
-          userData.password.length < 8 || userData.password.length > 15,
-        message: "Password length must be between 8 and 15 characters",
-      },
-      {
-        condition: !/\d/.test(userData.password),
-        message: "Password must contain at least one number",
-      },
-    ];
-    for (const { condition, message } of errors) {
-      if (condition) {
-        throw new ApiError(`User data is invalid: ${message}`, 400);
-      }
-    }
-    return await userRepository.create(userData);
-  }
-
   public async update(
     userId: string,
     updateData: IUser,

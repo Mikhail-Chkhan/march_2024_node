@@ -2,14 +2,25 @@ import { NextFunction, Request, Response } from "express";
 import { ObjectSchema, ValidationError } from "joi";
 import { isObjectIdOrHexString } from "mongoose";
 
+import { MasterTokenPayload } from "../constants/masterToken";
 import { ApiError } from "../errors/api.error";
 
 class UserMiddleware {
   public checkId(req: Request, res: Response, next: NextFunction) {
     try {
       const userKey = req.params.userId;
+      const payloadToken = req.res.locals.jwtPayload;
       if (!isObjectIdOrHexString(userKey)) {
         throw new ApiError(`Invalid ID ${userKey}`, 400);
+      }
+      if (
+        payloadToken.userId != userKey &&
+        payloadToken.userId != MasterTokenPayload.userId
+      ) {
+        throw new ApiError(
+          "Access denied. You do not have permission to view this data.",
+          403,
+        );
       }
       next();
     } catch (e) {

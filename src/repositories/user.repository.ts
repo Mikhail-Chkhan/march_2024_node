@@ -8,6 +8,9 @@ class UserRepository {
   public async getById(userId: string): Promise<IUser | null> {
     return await User.findById(userId);
   }
+  public async getByEmail(email: string): Promise<IUser | null> {
+    return await User.findOne({ email }).select("+password");
+  }
   public async create(user: IUser): Promise<IUser> {
     return await User.create(user);
   }

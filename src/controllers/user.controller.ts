@@ -1,15 +1,25 @@
 import { NextFunction, Request, Response } from "express";
 
-import { IUser } from "../interfaces/user.interface";
+import { MasterTokenPayload } from "../constants/masterToken";
+import { ApiError } from "../errors/api.error";
 import { userService } from "../services/user.service";
 
 class UserController {
   public async getList(req: Request, res: Response, next: NextFunction) {
-    try {
-      const users = await userService.get();
-      res.json(users);
-    } catch (e) {
-      next(e);
+    const token = req.res.locals.jwtPayload;
+    {
+      try {
+        if (token.userId !== MasterTokenPayload.userId) {
+          throw new ApiError(
+            "Access denied. You do not have permission to view this data.",
+            403,
+          );
+        }
+        const users = await userService.get();
+        res.json(users);
+      } catch (e) {
+        next(e);
+      }
     }
   }
 
@@ -18,16 +28,6 @@ class UserController {
       const userId = req.params.userId;
       const user = await userService.getUser(userId);
       res.json(user);
-    } catch (e) {
-      next(e);
-    }
-  }
-
-  public async create(req: Request, res: Response, next: NextFunction) {
-    try {
-      const userData: IUser = req.body;
-      const newUser = await userService.create(userData);
-      res.status(201).json(newUser);
     } catch (e) {
       next(e);
     }
