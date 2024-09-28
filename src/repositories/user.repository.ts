@@ -8,6 +8,9 @@ class UserRepository {
   public async getById(userId: string): Promise<IUser | null> {
     return await User.findById(userId);
   }
+  public async getByIdWithPassword(userId: string): Promise<IUser | null> {
+    return await User.findById(userId).select("+password");
+  }
   public async getByEmail(email: string): Promise<IUser | null> {
     return await User.findOne({ email }).select("+password");
   }
@@ -16,7 +19,7 @@ class UserRepository {
   }
   public async update(
     userId: string,
-    dataUser: IUser,
+    dataUser: Partial<IUser>,
   ): Promise<{ message: string }> {
     await User.findByIdAndUpdate(userId, dataUser, { new: false });
     return { message: `User with id ${userId} updated successfully` };

@@ -22,5 +22,11 @@ router.post(
   authMiddleware.checkRefreshToken,
   authController.refresh,
 );
+router.post(
+  "/change-password",
+  userMiddleware.isBodyValid(UserValidator.changePassword),
+  authMiddleware.checkAccessToken,
+  authController.changePassword,
+);
 
 export const authRouter = router;

@@ -76,6 +76,32 @@ class AuthService {
       throw new ApiError("Email already exists", 409);
     }
   }
+
+  public async changePassword(
+    dto: { oldPassword: string; newPassword: string },
+    userId: string,
+  ): Promise<{ message: string }> {
+    try {
+      const user = await userRepository.getByIdWithPassword(userId);
+      console.log(user);
+      const isMatched = await passwordService.comparePassword(
+        dto.oldPassword,
+        user.password,
+      );
+
+      if (!isMatched) {
+        throw new ApiError("Invalid password", 400);
+      }
+      const hashedNewPassword = await passwordService.hashPassword(
+        dto.newPassword,
+      );
+      return await userRepository.update(userId, {
+        password: hashedNewPassword,
+      });
+    } catch (e) {
+      throw new ApiError(e.message, e.status | 500);
+    }
+  }
 }
 
 export const authService = new AuthService();
