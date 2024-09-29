@@ -15,3 +15,5 @@ export interface IUser {
 }
 
 export type ISignIn = Pick<IUser, "email" | "password">;
+
+export type IResetPasswordSet = Pick<IUser, "password"> & { token: string };

@@ -37,7 +37,7 @@ class UserController {
     try {
       const userId = req.params.userId;
       const result = await userService.update(userId.toString(), req.body);
-      return res.status(201).json(result.message);
+      return res.status(201).json({ message: result.message, status: 201 });
     } catch (e) {
       next(e);
     }
@@ -47,7 +47,7 @@ class UserController {
     try {
       const userId = req.params.userId;
       const result = await userService.remove(userId.toString());
-      return res.status(200).json(result.message);
+      return res.status(200).json({ message: result.message, status: 200 });
     } catch (e) {
       next(e);
     }

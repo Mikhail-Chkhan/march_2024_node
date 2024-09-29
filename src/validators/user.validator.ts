@@ -36,6 +36,10 @@ export class UserValidator {
     oldPassword: this.password.required(),
     newPassword: this.password.required(),
   });
+
+  public static resetPassword = joi.object({
+    email: this.email.required(),
+  });
 }
 
 export const userValidator = new UserValidator();

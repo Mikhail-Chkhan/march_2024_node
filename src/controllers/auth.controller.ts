@@ -1,7 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 
 import { ITokenPayload } from "../interfaces/token.interface";
-import { ISignIn, IUser } from "../interfaces/user.interface";
+import {
+  IResetPasswordSet,
+  ISignIn,
+  IUser,
+} from "../interfaces/user.interface";
 import { authService } from "../services/auth.service";
 
 class AuthController {
@@ -36,11 +40,40 @@ class AuthController {
     }
   }
   public async changePassword(req: Request, res: Response, next: NextFunction) {
-    const { userId: userId } = req.res.locals.jwtPayload as ITokenPayload; //------Не понял эту строку кода--------//
+    const { userId: userId } = req.res.locals.jwtPayload as ITokenPayload;
     try {
       const dto = req.body;
       const result = await authService.changePassword(dto, userId);
-      return res.status(200).json(result.message);
+      return res.status(200).json({ message: result.message, status: 200 });
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  public async resetPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const user = res.locals.user;
+      await authService.resetPassword(user);
+      return res
+        .status(200)
+        .json({ message: "Password recovery email sent", status: 200 });
+    } catch (e) {
+      next(e);
+    }
+  }
+  public async forgotPasswordSet(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const jwtPayload = req.res.locals.jwtPayload as ITokenPayload;
+      const dto = req.body as IResetPasswordSet;
+
+      await authService.forgotPasswordSet(dto, jwtPayload);
+      return res
+        .status(200)
+        .json({ message: "password successfully recovered", status: 200 });
     } catch (e) {
       next(e);
     }
