@@ -32,7 +32,6 @@ class AuthMiddleware {
         accessToken,
         TokenTypeEnum.ACCESS,
       );
-
       const pair = await tokenRepository.findByParams({ accessToken });
       // поиск токена accessToken в БД
       if (!pair) {

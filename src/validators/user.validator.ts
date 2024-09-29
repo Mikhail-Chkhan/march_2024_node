@@ -40,6 +40,13 @@ export class UserValidator {
   public static resetPassword = joi.object({
     email: this.email.required(),
   });
+  public static setPassword = joi.object({
+    password: this.password.required(),
+    token: joi.string().required(),
+  });
+  public static verify = joi.object({
+    token: joi.string().required(),
+  });
 }
 
 export const userValidator = new UserValidator();

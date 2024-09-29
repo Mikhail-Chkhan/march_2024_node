@@ -33,9 +33,21 @@ class AuthService {
       role: user.role,
     });
     await tokenRepository.create({ ...tokens, _userId: user._id });
+
+    const token = tokenService.generateActionTokens(
+      { userId: user._id, role: user.role },
+      ActionTokenTypeEnum.VERIFY_EMAIL,
+    );
+    await actionTokenRepository.create({
+      type: ActionTokenTypeEnum.VERIFY_EMAIL,
+      _userId: user._id,
+      token,
+    });
+
     await emailService.sendMail(user.email, EmailTypeEnum.WELCOME, {
       name: user.name,
       email: user.email,
+      actionToken: token,
     });
     return { user, tokens };
   }
@@ -118,7 +130,7 @@ class AuthService {
         },
         ActionTokenTypeEnum.FORGOT_PASSWORD,
       );
-      console.log("actionToken", actionToken);
+      // console.log("actionToken", actionToken);
       await actionTokenRepository.create({
         type: ActionTokenTypeEnum.FORGOT_PASSWORD,
         _userId: user._id,
@@ -144,6 +156,55 @@ class AuthService {
       type: ActionTokenTypeEnum.FORGOT_PASSWORD,
     });
     await tokenRepository.deleteManyByParams({ _userId: jwtPayload.userId });
+  }
+  public async logout(
+    jwtPayload: ITokenPayload,
+    tokenId: string,
+  ): Promise<void> {
+    const user = await userRepository.getById(jwtPayload.userId);
+    await tokenRepository.deleteByParams({ _id: tokenId });
+    await emailService.sendMail(user.email, EmailTypeEnum.LOGOUT, {
+      name: user.name,
+    });
+  }
+
+  public async logoutAll(jwtPayload: ITokenPayload): Promise<void> {
+    const user = await userRepository.getById(jwtPayload.userId);
+    await tokenRepository.deleteManyByParams({ _userId: jwtPayload.userId });
+    await emailService.sendMail(user.email, EmailTypeEnum.LOGOUT, {
+      name: user.name,
+    });
+  }
+  public async verify(jwtPayload: ITokenPayload): Promise<void> {
+    await userRepository.update(jwtPayload.userId, { isVerified: true });
+    await actionTokenRepository.deleteManyByParams({
+      _userId: jwtPayload.userId,
+      type: ActionTokenTypeEnum.VERIFY_EMAIL,
+    });
+  }
+  public async verificationRequest(jwtPayload: ITokenPayload) {
+    const actionToken = tokenService.generateActionTokens(
+      {
+        userId: jwtPayload.userId,
+        role: jwtPayload.role,
+      },
+      ActionTokenTypeEnum.VERIFY_EMAIL,
+    );
+    // console.log("actionToken", actionToken);
+    await actionTokenRepository.create({
+      type: ActionTokenTypeEnum.VERIFY_EMAIL,
+      _userId: jwtPayload.userId,
+      token: actionToken,
+    });
+    const user = await userRepository.getById(jwtPayload.userId);
+    await emailService.sendMail(user.email, EmailTypeEnum.VERIFY_EMAIL, {
+      token: actionToken,
+      name: user.name,
+      email: user.email,
+    });
+  }
+  catch(e) {
+    throw new ApiError(e.message, e.status | 500);
   }
 }
 

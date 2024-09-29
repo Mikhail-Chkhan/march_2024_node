@@ -3,4 +3,5 @@ export enum EmailTypeEnum {
   FORGOT_PASSWORD = "forgot-password",
   OLD_VISIT = "old-visit",
   LOGOUT = "logout",
+  VERIFY_EMAIL = "verify",
 }

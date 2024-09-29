@@ -17,4 +17,8 @@ export const emailConstants = {
     subject: "Logout",
     template: "logout",
   },
+  [EmailTypeEnum.VERIFY_EMAIL]: {
+    subject: "VERIFY EMAIL",
+    template: "verify",
+  },
 };

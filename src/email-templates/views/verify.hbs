@@ -1,16 +1,21 @@
 <table style="width: 100%; padding: 45px 35px; box-sizing: border-box">
     <tr>
         <td style="font-size: 18px; text-align: center;">
-            {{name}}, Welcome on our platform!
+            {{name}}, Confirm your email address!
 
         </td>
     </tr>
     <tr>
         <td style="text-align: center;">
             <p style="margin: 17px 0 0;">
-                You need submit your email: {{email}}, please click on button
+                You need submit your email: {{email}}, please click on button.
             </p>
             <a href="{{frontUrl}}/activate?token={{actionToken}}">VERIFY</a>
+        </td>
+        <td>
+            <p style="margin: 17px 0 0;">
+                If you did not send a verification request, do not reply to the letter.
+            </p>
         </td>
     </tr>
     <tr>
