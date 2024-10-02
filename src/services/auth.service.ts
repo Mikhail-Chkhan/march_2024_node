@@ -8,6 +8,7 @@ import {
   IUser,
 } from "../interfaces/user.interface";
 import { actionTokenRepository } from "../repositories/action-token.repository";
+import { passwordRepository } from "../repositories/password.repository";
 import { tokenRepository } from "../repositories/token.repository";
 import { userRepository } from "../repositories/user.repository";
 import { emailService } from "./email.service";
@@ -42,6 +43,11 @@ class AuthService {
       type: ActionTokenTypeEnum.VERIFY_EMAIL,
       _userId: user._id,
       token,
+    });
+
+    await this.checkAndSavePassword({
+      userId: user._id,
+      password: dto.password,
     });
 
     await emailService.sendMail(user.email, EmailTypeEnum.WELCOME, {
@@ -113,6 +119,11 @@ class AuthService {
       const hashedNewPassword = await passwordService.hashPassword(
         dto.newPassword,
       );
+      await this.checkAndSavePassword({
+        userId: userId,
+        password: dto.newPassword,
+      });
+
       return await userRepository.update(userId, {
         password: hashedNewPassword,
       });
@@ -149,6 +160,12 @@ class AuthService {
     jwtPayload: ITokenPayload,
   ): Promise<void> {
     const password = await passwordService.hashPassword(dto.password);
+
+    await this.checkAndSavePassword({
+      userId: jwtPayload.userId,
+      password: dto.password,
+    });
+
     await userRepository.update(jwtPayload.userId, { password });
 
     await actionTokenRepository.deleteManyByParams({
@@ -205,6 +222,34 @@ class AuthService {
   }
   catch(e) {
     throw new ApiError(e.message, e.status | 500);
+  }
+
+  private async checkAndSavePassword(dto: {
+    userId: string;
+    password: string;
+  }) {
+    try {
+      const previousPasswords = await passwordRepository.findAllByUserId(
+        dto.userId,
+      );
+
+      for (const oldPassword of previousPasswords) {
+        const isMatched = await passwordService.comparePassword(
+          dto.password,
+          oldPassword.password,
+        );
+        if (isMatched) {
+          throw new ApiError("You have already used this password before", 422);
+        }
+      }
+      const hashedPassword = await passwordService.hashPassword(dto.password);
+      await passwordRepository.create({
+        password: hashedPassword,
+        _userId: dto.userId,
+      });
+    } catch (e) {
+      throw new ApiError(e.message, e.status || 500);
+    }
   }
 }
 
