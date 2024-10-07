@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import { userController } from "../controllers/user.controller";
 import { authMiddleware } from "../middlewares/auth.middleware";
+import { fileMiddleware } from "../middlewares/file.middleware";
 import { userMiddleware } from "../middlewares/user.middleware";
 import { UserValidator } from "../validators/user.validator";
 
@@ -20,6 +21,18 @@ router.put(
   userMiddleware.isBodyValid(UserValidator.create),
   userMiddleware.checkId,
   userController.update,
+);
+
+router.post(
+  "/logo",
+  authMiddleware.checkAccessToken,
+  fileMiddleware.isLogoValid,
+  userController.uploadLogo,
+);
+router.delete(
+  "/remove-logo",
+  authMiddleware.checkAccessToken,
+  userController.removeLogo,
 );
 router.delete(
   "/:userId",

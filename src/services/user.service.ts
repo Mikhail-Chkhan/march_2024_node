@@ -1,6 +1,10 @@
+import { UploadedFile } from "express-fileupload";
+
+import { FileItemTypeEnum } from "../enums/file-item-type.enum";
 import { ApiError } from "../errors/api.error";
 import { IUser } from "../interfaces/user.interface";
 import { userRepository } from "../repositories/user.repository";
+import { s3Service } from "./s3.service";
 
 class UserService {
   public async get(): Promise<IUser[]> {
@@ -39,6 +43,31 @@ class UserService {
 
   public async remove(userId: string): Promise<{ message: string }> {
     return await userRepository.remove(userId);
+  }
+  public async uploadLogo(
+    userId: string,
+    file: UploadedFile,
+  ): Promise<{ message: string }> {
+    const user = await userRepository.getById(userId);
+    if (user.logo) {
+      await s3Service.deleteFile(user.logo);
+    }
+    const logo = await s3Service.uploadFile(
+      file,
+      FileItemTypeEnum.USER,
+      user._id,
+    );
+
+    return await userRepository.update(user._id, { logo });
+  }
+
+  public async removeLogo(userId: string): Promise<void> {
+    const user = await userRepository.getById(userId);
+
+    if (user.logo) {
+      await s3Service.deleteFile(user.logo);
+    }
+    await userRepository.update(user._id, { logo: null });
   }
 }
 export const userService = new UserService();
