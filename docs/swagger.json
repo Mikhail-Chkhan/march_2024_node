@@ -1,0 +1,527 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "API for working with users and authentication",
+    "version": "1.0.0",
+    "title": "User and Auth API",
+    "termsOfService": "http://swagger.io/terms/",
+    "contact": {
+      "email": "support@example.com"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "host": "localhost:3003",
+  "basePath": "/v1",
+  "tags": [
+    {
+      "name": "auth",
+      "description": "Operations related to authentication and registration",
+      "externalDocs": {
+        "description": "Learn more about authentication",
+        "url": "http://localhost:3003/auth"
+      }
+    },
+    {
+      "name": "user",
+      "description": "Operations related to user management",
+      "externalDocs": {
+        "description": "Additional information about users",
+        "url": "http://localhost:3003/users"
+      }
+    }
+  ],
+  "schemes": [
+    "https"
+  ],
+  "paths": {
+    "/users/all": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Get all users",
+        "description": "Returns a list of all users without passwords",
+        "operationId": "getAllUsers",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/User"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/users/{userId}": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Get user by ID",
+        "description": "Fetches user data by their ID",
+        "operationId": "getUserById",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "The ID of the user to retrieve"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User data retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/users/{userId}": {
+      "put": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Update user by ID",
+        "description": "Updates user information by their ID",
+        "operationId": "updateUserById",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "The ID of the user to update"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Updated user object",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User updated successfully"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/users/me": {
+      "patch": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Update user profile",
+        "description": "Updates specific fields of the current user's profile",
+        "operationId": "updateUserProfile",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "User fields to update",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User profile updated"
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        }
+      }
+    },
+    "/users/logo": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Upload user logo",
+        "description": "Updates the user's logo (PNG, JPEG up to 2MB)",
+        "operationId": "uploadUserLogo",
+        "parameters": [
+          {
+            "in": "formData",
+            "name": "logo",
+            "type": "file",
+            "description": "The file of the logo to upload",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Logo uploaded successfully"
+          },
+          "400": {
+            "description": "Invalid file format or size"
+          }
+        }
+      }
+    },
+
+    "/users?orderBy=createdAt&order=desc&limit=5&search=sim&page=3": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Get users with query parameters",
+        "description": "Fetches users using optional query parameters for pagination and sorting",
+        "operationId": "getUsersWithQuery",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "orderBy",
+            "in": "query",
+            "description": "The field to sort by",
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "Sort order (asc/desc)",
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Limit the number of results",
+            "type": "integer"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Search term for filtering",
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number for pagination",
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/User"
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          }
+        }
+      }
+    },
+    "/users/{userId}": {
+      "delete": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Delete a user by ID",
+        "description": "Deletes the user with the given ID",
+        "operationId": "deleteUserById",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID of the user to delete"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/users/remove-logo": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Remove user logo",
+        "description": "Removes the user's profile logo",
+        "operationId": "removeUserLogo",
+        "responses": {
+          "200": {
+            "description": "Logo removed successfully"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/auth/sign-up": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "User registration",
+        "description": "Creates a new user account",
+        "operationId": "registerUser",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "New user object",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "User registered successfully"
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        }
+      }
+    },
+    "/auth/sign-in": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "User login",
+        "description": "Logs the user in and returns an access/refresh token pair",
+        "operationId": "loginUser",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Login credentials",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login successful"
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Refresh token",
+        "description": "Generates a new access/refresh token pair using the refresh token",
+        "operationId": "refreshToken",
+        "responses": {
+          "200": {
+            "description": "Token refreshed successfully"
+          },
+          "401": {
+            "description": "Invalid or expired refresh token"
+          }
+        }
+      }
+    },
+    "/auth/change-password": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Change password",
+        "description": "Changes the user's password, validating the old one",
+        "operationId": "changePassword",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Password change request",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "oldPassword": {
+                  "type": "string"
+                },
+                "newPassword": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Password changed successfully"
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        }
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Reset password",
+        "description": "Initiates password reset process by sending an email",
+        "operationId": "resetPassword",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Email address",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Password reset email sent"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/auth/verification-request": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Request email verification",
+        "description": "Sends a verification email with an action token",
+        "operationId": "requestVerification",
+        "responses": {
+          "200": {
+            "description": "Verification email sent"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/auth/verify": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Verify user email",
+        "description": "Verifies the user's email using the action token",
+        "operationId": "verifyEmail",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Verification token",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "token": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email verified"
+          },
+          "400": {
+            "description": "Invalid or expired token"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "User": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "age": {
+          "type": "integer"
+        },
+        "email": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

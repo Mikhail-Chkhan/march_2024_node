@@ -64,6 +64,17 @@ class UserMiddleware {
       next(e);
     }
   }
+
+  public isQueryValid(validator: ObjectSchema) {
+    return async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        req.query = await validator.validateAsync(req.query);
+        next();
+      } catch (e) {
+        next(new ApiError(e.details[0].message, 400));
+      }
+    };
+  }
 }
 
 export const userMiddleware = new UserMiddleware();

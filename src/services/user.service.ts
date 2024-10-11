@@ -2,13 +2,27 @@ import { UploadedFile } from "express-fileupload";
 
 import { FileItemTypeEnum } from "../enums/file-item-type.enum";
 import { ApiError } from "../errors/api.error";
-import { IUser } from "../interfaces/user.interface";
+import { IPaginatorResponse } from "../interfaces/paginator.interface";
+import {
+  IUser,
+  IUserListQuery,
+  IUserResponse,
+} from "../interfaces/user.interface";
+import { userPresenter } from "../presenters/user.presenter";
 import { userRepository } from "../repositories/user.repository";
+import { passwordService } from "./password.service";
 import { s3Service } from "./s3.service";
 
 class UserService {
   public async get(): Promise<IUser[]> {
     return await userRepository.getList();
+  }
+  public async getListWithQueryParams(
+    query: IUserListQuery,
+  ): Promise<IPaginatorResponse<IUserResponse>> {
+    const [entities, total] =
+      await userRepository.getListWithQueryParams(query);
+    return userPresenter.toListResDto(entities, total, query);
   }
   public async getUser(userId: string): Promise<IUser> {
     return await userRepository.getById(userId);
@@ -37,6 +51,27 @@ class UserService {
       if (condition) {
         throw new ApiError(`User data is invalid: ${message}`, 400);
       }
+    }
+    const user = await userRepository.getByIdWithPassword(userId);
+    const isMatched = await passwordService.comparePassword(
+      updateData.password,
+      user.password,
+    );
+
+    if (!isMatched) {
+      throw new ApiError("Invalid password", 400);
+    }
+    const dtoWithoutPassword = { ...updateData };
+    delete dtoWithoutPassword.password;
+    return await userRepository.update(userId, dtoWithoutPassword);
+  }
+
+  public async updateSingleParams(
+    userId: string,
+    updateData: Partial<IUser>,
+  ): Promise<{ message: string }> {
+    if (!updateData) {
+      throw new ApiError("body is required", 400);
     }
     return await userRepository.update(userId, updateData);
   }

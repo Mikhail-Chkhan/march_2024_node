@@ -7,6 +7,7 @@ import {
   ISignIn,
   IUser,
 } from "../interfaces/user.interface";
+import { userPresenter } from "../presenters/user.presenter";
 import { actionTokenRepository } from "../repositories/action-token.repository";
 import { passwordRepository } from "../repositories/password.repository";
 import { tokenRepository } from "../repositories/token.repository";
@@ -55,12 +56,13 @@ class AuthService {
       email: user.email,
       actionToken: token,
     });
-    return { user, tokens };
+    const userPublicData = userPresenter.toPublicResDto(<IUser>user);
+    return { user: userPublicData, tokens };
   }
 
   public async signIn(
     dto: ISignIn,
-  ): Promise<{ user: IUser; tokens: ITokenPair }> {
+  ): Promise<{ user: Partial<IUser>; tokens: ITokenPair }> {
     const user = await userRepository.getByEmail(dto.email);
     if (!user) {
       throw new ApiError("User not found", 404);
@@ -79,7 +81,8 @@ class AuthService {
       role: user.role,
     });
     await tokenRepository.create({ ...tokens, _userId: user._id });
-    return { user, tokens };
+    const userPublicData = userPresenter.toPublicResDto(user);
+    return { user: userPublicData, tokens };
   }
   public async refresh(
     refreshToken: string,
