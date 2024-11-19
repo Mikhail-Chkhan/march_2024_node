@@ -30,7 +30,7 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(fileUpload());
-// app.use(rateLimit({ windowMs: 2 * 60 * 1000, limit: 5 }));  //  at the level of the entire app
+// app.use(rateLimit({ windowMs: 2 * 60 * 1000, limit: 5 }));  //  at the level of the entire app test
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use((req: Request, res: Response, next: NextFunction) => {
